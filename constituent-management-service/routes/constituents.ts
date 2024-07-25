@@ -11,7 +11,8 @@ export interface Constituent {
   firstName: string,
   lastName: string,
   address: string,
-  email: string
+  email: string,
+  signupTime: number
 }
 
 /* GET constituents listing. */
@@ -39,7 +40,7 @@ router.get('/export', async (req, res, next) => {
     const constituents = await constituentsCollection.find().exec(); // Fetch documents from the collection
     // Convert documents to plain objects
     const data = constituents.map(doc => doc.toJSON());
-    const fields = ['firstName', 'lastName', 'address', 'email'];
+    const fields = ['firstName', 'lastName', 'address', 'email', 'signupTime'];
 
 
     // Convert JSON data to CSV

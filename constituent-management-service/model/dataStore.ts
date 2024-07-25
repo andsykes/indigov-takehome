@@ -1,4 +1,4 @@
-import { createRxDatabase, RxDatabase } from 'rxdb';
+import { createRxDatabase, RxDatabase, RxCollection, RxCollectionCreator } from 'rxdb';
 import { getRxStorageMemory } from 'rxdb/plugins/storage-memory';
 
 const DATABASE_NAME = 'constituents';
@@ -10,7 +10,7 @@ export const getConstituentsDb = async (): Promise<RxDatabase> => {
     dbPromise = createRxDatabase({
       name: DATABASE_NAME,
       storage: getRxStorageMemory(),
-    }).then(async db => {
+    }).then(async (db) => {
       const constituentsSchema = {
         version: 0,
         primaryKey: {
@@ -24,16 +24,32 @@ export const getConstituentsDb = async (): Promise<RxDatabase> => {
           firstName: { type: 'string' },
           lastName: { type: 'string' },
           address: { type: 'string' },
-          email: { type: 'string' }
+          email: { type: 'string' },
+          signupTime: {
+            type: 'string',
+            format: 'date-time'
+          }
         },
         required: ['id', 'firstName', 'lastName', 'address', 'email']
       };
 
-      await db.addCollections({
+      const collections = await db.addCollections({
         constituents: {
-          schema: constituentsSchema
+          schema: constituentsSchema,
+          methods: {
+            async setSignupTime() {
+              // Explicitly type `this` as any to avoid TypeScript issues
+              (this as any).signupTime = new Date().toISOString();
+            }
+          }
         }
       });
+
+      // Attach the preInsert hook correctly
+      collections.constituents.preInsert((doc: any) => {
+        doc.signupTime = new Date().toISOString();
+        return doc; // Return the updated document
+      }, false); // 'false' for non-parallel execution
 
       return db;
     });
