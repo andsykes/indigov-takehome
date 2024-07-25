@@ -1,11 +1,8 @@
 import express from 'express';
 import { getConstituentsDb } from '../model/dataStore';
 import { parse } from 'json2csv';
-import fs from 'fs';
 
 const router = express.Router();
-
-
 
 export interface Constituent {
   firstName: string,
@@ -38,6 +35,7 @@ router.get('/export', async (req, res, next) => {
       return res.status(500).json({ error: 'Constituents collection not found' });
     }
     const constituents = await constituentsCollection.find().exec(); // Fetch documents from the collection
+
     // Convert documents to plain objects
     const data = constituents.map(doc => doc.toJSON());
     const fields = ['firstName', 'lastName', 'address', 'email', 'signupTime'];
@@ -47,8 +45,6 @@ router.get('/export', async (req, res, next) => {
     const csv = data.length > 0
       ? parse(data, { fields })
       : parse([], { fields });
-
-    console.log(csv)
 
     // Set headers to prompt download
     res.setHeader('Content-disposition', 'attachment; filename=constituents_export.csv');
